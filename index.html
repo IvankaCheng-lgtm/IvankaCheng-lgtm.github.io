@@ -1,0 +1,1656 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>這樣吃算多少 - 飲食熱量分析</title>
+    <!-- Tailwind CSS v3 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+    <!-- Tailwind 配置 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4CAF50',
+                        secondary: '#2196F3',
+                        accent: '#FF9800',
+                        light: '#F5F5F5',
+                        dark: '#333333',
+                        medium: '#666666'
+                    },
+                    fontFamily: {
+                        sans: ['Noto Sans TC', 'sans-serif']
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .text-shadow {
+                text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            .btn-primary {
+                @apply bg-primary text-white font-medium py-3 px-6 rounded-full shadow-md hover:bg-opacity-90 transition-all duration-300 flex items-center justify-center gap-2;
+            }
+            .btn-secondary {
+                @apply bg-white text-primary font-medium py-3 px-6 rounded-full shadow-md hover:bg-light transition-all duration-300 flex items-center justify-center gap-2 border border-primary;
+            }
+            .card {
+                @apply bg-white rounded-2xl shadow-lg p-6;
+            }
+            .input-field {
+                @apply w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300;
+            }
+            .tab-active {
+                @apply border-b-2 border-primary text-primary;
+            }
+        }
+    </style>
+</head>
+<body class="bg-light font-sans text-dark">
+    <!-- 載入畫面 -->
+    <div id="loading-screen" class="fixed inset-0 bg-white z-50 flex flex-col items-center justify-center">
+        <img src="https://p9-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/2b50b0bff50c47d085f967924e363817~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=20260224205257CED21D2127924BF448D0&rrcfp=f06b921b&x-expires=1774529635&x-signature=v9U1u15%2FJRiA8ivMDEbez5tDuzs%3D" alt="這樣吃算多少" class="w-24 h-24 mb-4 animate-pulse-slow">
+        <h1 class="text-2xl font-bold text-primary">這樣吃算多少</h1>
+        <p class="text-medium mt-2">正在載入...</p>
+    </div>
+
+    <!-- 主容器 -->
+    <div id="app" class="max-w-md mx-auto min-h-screen bg-white shadow-lg relative overflow-hidden">
+        <!-- 歡迎頁 -->
+        <div id="welcome-screen" class="min-h-screen flex flex-col items-center justify-center p-6">
+            <div class="text-center mb-8">
+                <img src="https://p9-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/2b50b0bff50c47d085f967924e363817~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=20260224205257CED21D2127924BF448D0&rrcfp=f06b921b&x-expires=1774529635&x-signature=v9U1u15%2FJRiA8ivMDEbez5tDuzs%3D" alt="這樣吃算多少" class="w-32 h-32 mx-auto mb-4">
+                <h1 class="text-3xl font-bold text-primary text-shadow">這樣吃算多少</h1>
+                <p class="text-medium mt-2">輕鬆分析食物營養，掌握健康飲食</p>
+            </div>
+            
+            <div class="w-full">
+                <button id="get-started-btn" class="btn-primary w-full">
+                    <i class="fa fa-cutlery"></i>
+                    開始使用
+                </button>
+            </div>
+            
+            <div class="mt-12 text-center text-sm text-medium">
+                <p>版本 1.0.0</p>
+                <p class="mt-1">© 2023 這樣吃算多少</p>
+            </div>
+        </div>
+
+        <!-- 用戶信息設置頁 -->
+        <div id="profile-setup-screen" class="min-h-screen p-6 hidden">
+            <div class="flex items-center mb-6">
+                <button class="back-btn mr-4">
+                    <i class="fa fa-arrow-left text-xl"></i>
+                </button>
+                <h2 class="text-2xl font-bold">設定個人資料</h2>
+            </div>
+            
+            <form id="profile-form" class="space-y-6">
+                <div class="space-y-2">
+                    <label class="block text-medium">性別</label>
+                    <div class="flex space-x-4">
+                        <label class="flex items-center space-x-2 flex-1">
+                            <input type="radio" name="gender" value="male" class="w-4 h-4 text-primary" checked>
+                            <span>男</span>
+                        </label>
+                        <label class="flex items-center space-x-2 flex-1">
+                            <input type="radio" name="gender" value="female" class="w-4 h-4 text-primary">
+                            <span>女</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="space-y-2">
+                    <label for="nickname" class="block text-medium">暱稱</label>
+                    <input type="text" id="nickname" name="nickname" class="input-field" placeholder="請輸入您的暱稱" value="使用者">
+                </div>
+                
+                <div class="space-y-2">
+                    <label for="age" class="block text-medium">年齡</label>
+                    <input type="number" id="age" name="age" class="input-field" placeholder="請輸入年齡" value="30">
+                </div>
+                
+                <div class="space-y-2">
+                    <label for="height" class="block text-medium">身高 (cm)</label>
+                    <input type="number" id="height" name="height" class="input-field" placeholder="請輸入身高" value="175">
+                </div>
+                
+                <div class="space-y-2">
+                    <label for="weight" class="block text-medium">體重 (kg)</label>
+                    <input type="number" id="weight" name="weight" class="input-field" placeholder="請輸入體重" value="70">
+                </div>
+                
+                <div class="space-y-2">
+                    <label class="block text-medium">活動水平</label>
+                    <select id="activity-level" name="activity-level" class="input-field">
+                        <option value="1.2">久坐不動（很少運動）</option>
+                        <option value="1.375">輕度活動（每週運動1-3次）</option>
+                        <option value="1.55" selected>中度活動（每週運動3-5次）</option>
+                        <option value="1.725">高度活動（每週運動6-7次）</option>
+                        <option value="1.9">非常活躍（體力勞動或每天劇烈運動）</option>
+                    </select>
+                </div>
+                
+                <div class="space-y-2">
+                    <label class="block text-medium">健康目標</label>
+                    <select id="health-goal" name="health-goal" class="input-field">
+                        <option value="weightLoss">減重</option>
+                        <option value="maintain" selected>維持體重</option>
+                        <option value="muscleGain">增肌</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="btn-primary w-full mt-6">
+                    <i class="fa fa-check"></i>
+                    完成設定
+                </button>
+            </form>
+        </div>
+
+        <!-- 主頁 -->
+        <div id="main-screen" class="min-h-screen hidden">
+            <!-- 頂部導航 -->
+            <header class="bg-white shadow-sm p-4 flex justify-between items-center">
+                <div>
+                    <h2 class="text-xl font-bold">今天</h2>
+                    <p id="current-date" class="text-sm text-medium"></p>
+                </div>
+                <button id="profile-btn" class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center">
+                    <i class="fa fa-user"></i>
+                </button>
+            </header>
+            
+            <!-- 每日熱量進度 -->
+            <div class="p-4">
+                <div class="card">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-bold">今日熱量攝取</h3>
+                        <span id="calories-remaining" class="text-sm text-medium">剩餘 2000 卡路里</span>
+                    </div>
+                    <div class="relative pt-1">
+                        <div class="overflow-hidden h-4 mb-2 text-xs flex rounded-full bg-gray-200">
+                            <div id="calories-progress" style="width: 35%" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-primary"></div>
+                        </div>
+                        <div class="flex justify-between text-xs text-medium">
+                            <span>0</span>
+                            <span id="calories-consumed">700 / 2000 卡路里</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 餐食記錄 -->
+            <div class="p-4">
+                <div class="flex space-x-2 mb-4 overflow-x-auto pb-2">
+                    <button class="tab-active whitespace-nowrap px-4 py-2">早餐</button>
+                    <button class="text-medium whitespace-nowrap px-4 py-2">午餐</button>
+                    <button class="text-medium whitespace-nowrap px-4 py-2">晚餐</button>
+                    <button class="text-medium whitespace-nowrap px-4 py-2">點心</button>
+                </div>
+                
+                <!-- 早餐記錄 -->
+                <div id="breakfast-records" class="space-y-4">
+                    <div class="card">
+                        <div class="flex items-start">
+                            <img src="https://p6-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/40effd8b3371489db39a1f18f7d3ec45~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=20260224205257CED21D2127924BF448D0&rrcfp=f06b921b&x-expires=1774529618&x-signature=ZiLkES8GmDQNgD0qs%2BTfeSAf41g%3D" alt="早餐" class="w-20 h-20 object-cover rounded-lg mr-4">
+                            <div class="flex-1">
+                                <div class="flex justify-between">
+                                    <h4 class="font-bold">營養早餐</h4>
+                                    <span class="text-sm text-medium">08:30</span>
+                                </div>
+                                <p class="text-sm text-medium mt-1">全麥麵包、水煮蛋、希臘優格、水果</p>
+                                <div class="flex justify-between items-center mt-2">
+                                    <span class="font-bold text-primary">350 卡路里</span>
+                                    <button class="text-medium">
+                                        <i class="fa fa-ellipsis-v"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="flex items-start">
+                            <img src="https://p26-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/9c6a2aeb5ccd4dbca0cfe3da7b734723~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=20260224205257CED21D2127924BF448D0&rrcfp=f06b921b&x-expires=1774529617&x-signature=xiHKuCtiSCKz1sxpmeN7LyYwLD4%3D" alt="午餐" class="w-20 h-20 object-cover rounded-lg mr-4">
+                            <div class="flex-1">
+                                <div class="flex justify-between">
+                                    <h4 class="font-bold">健身餐</h4>
+                                    <span class="text-sm text-medium">12:30</span>
+                                </div>
+                                <p class="text-sm text-medium mt-1">烤雞胸肉、糙米、蔬菜沙拉</p>
+                                <div class="flex justify-between items-center mt-2">
+                                    <span class="font-bold text-primary">350 卡路里</span>
+                                    <button class="text-medium">
+                                        <i class="fa fa-ellipsis-v"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 添加餐食按鈕 -->
+                <button id="add-meal-btn" class="w-full py-4 mt-4 flex items-center justify-center gap-2 text-primary border-2 border-dashed border-primary rounded-lg">
+                    <i class="fa fa-plus"></i>
+                    <span>添加餐食</span>
+                </button>
+            </div>
+            
+            <!-- 底部導航 -->
+            <nav class="fixed bottom-0 left-0 right-0 bg-white shadow-lg border-t border-gray-200 flex justify-around py-2 max-w-md mx-auto">
+                <button id="home-btn" class="flex flex-col items-center p-2 text-primary">
+                    <i class="fa fa-home text-xl"></i>
+                    <span class="text-xs mt-1">首頁</span>
+                </button>
+                <button id="stats-btn" class="flex flex-col items-center p-2 text-medium">
+                    <i class="fa fa-bar-chart text-xl"></i>
+                    <span class="text-xs mt-1">營養分析</span>
+                </button>
+                <button id="camera-btn" class="w-12 h-12 rounded-full bg-primary text-white flex items-center justify-center -mt-5 shadow-lg">
+                    <i class="fa fa-camera text-xl"></i>
+                </button>
+                <button id="history-btn" class="flex flex-col items-center p-2 text-medium">
+                    <i class="fa fa-calendar text-xl"></i>
+                    <span class="text-xs mt-1">歷史</span>
+                </button>
+                <button id="settings-btn" class="flex flex-col items-center p-2 text-medium">
+                    <i class="fa fa-lightbulb-o text-xl"></i>
+                    <span class="text-xs mt-1">AI建議</span>
+                </button>
+            </nav>
+        </div>
+
+        <!-- 拍照/上傳頁 -->
+        <div id="camera-screen" class="min-h-screen hidden">
+            <div class="flex justify-between items-center p-4">
+                <button class="back-btn">
+                    <i class="fa fa-arrow-left text-xl"></i>
+                </button>
+                <h2 class="text-xl font-bold">拍攝食物</h2>
+                <button id="gallery-btn">
+                    <i class="fa fa-image text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="relative h-[60vh] bg-black flex items-center justify-center">
+                <!-- 拍照預覽區域 -->
+                <div id="camera-preview" class="w-full h-full flex items-center justify-center">
+                    <i class="fa fa-camera text-white text-4xl"></i>
+                    <p class="text-white absolute bottom-4">點擊下方按鈕拍照</p>
+                </div>
+                
+                <!-- 拍照框 -->
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <div class="w-64 h-64 border-2 border-white rounded-lg opacity-70"></div>
+                </div>
+            </div>
+            
+            <div class="p-4 flex justify-center">
+                <button id="capture-btn" class="w-16 h-16 rounded-full bg-primary text-white flex items-center justify-center shadow-lg">
+                    <i class="fa fa-camera text-2xl"></i>
+                </button>
+            </div>
+            
+            <div class="p-4">
+                <div class="card">
+                    <h3 class="font-bold mb-2">拍攝提示</h3>
+                    <ul class="text-sm text-medium space-y-2">
+                        <li class="flex items-start">
+                            <i class="fa fa-check-circle text-primary mt-1 mr-2"></i>
+                            <span>確保食物在光線充足的環境下拍攝</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fa fa-check-circle text-primary mt-1 mr-2"></i>
+                            <span>盡量從上方垂直拍攝，讓整個食物都在畫面中</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fa fa-check-circle text-primary mt-1 mr-2"></i>
+                            <span>避免背景過於複雜，影響識別準確度</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- 分析結果頁 -->
+        <div id="result-screen" class="min-h-screen hidden">
+            <div class="flex justify-between items-center p-4">
+                <button class="back-btn">
+                    <i class="fa fa-arrow-left text-xl"></i>
+                </button>
+                <h2 class="text-xl font-bold">分析結果</h2>
+                <button id="edit-result-btn">
+                    <i class="fa fa-pencil text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="p-4">
+                <div class="card">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-bold">午餐</h3>
+                        <span class="text-sm text-medium">12:30</span>
+                    </div>
+                    
+                    <div class="flex mb-6">
+                        <img src="https://p6-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/0ae1de7bad2148ffac032b1fda407c38~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=20260224205257CED21D2127924BF448D0&rrcfp=f06b921b&x-expires=1774529619&x-signature=N3TjlFv9rA9hdmcoNI4iaY1zj0k%3D" alt="午餐" class="w-24 h-24 object-cover rounded-lg mr-4">
+                        <div class="flex-1">
+                            <h4 class="font-bold">均衡營養餐</h4>
+                            <p class="text-sm text-medium mt-1">白米飯、炒青菜、烤雞胸肉</p>
+                            <div class="mt-2">
+                                <span class="font-bold text-primary text-xl">450</span>
+                                <span class="text-sm text-medium">卡路里</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 營養成分圓形圖 -->
+                    <div class="flex justify-center mb-6">
+                        <div class="w-40 h-40">
+                            <canvas id="nutrition-chart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- 營養成分詳細 -->
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center">
+                                <div class="w-3 h-3 rounded-full bg-primary mr-2"></div>
+                                <span>蛋白質</span>
+                            </div>
+                            <span class="font-medium">35 克</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center">
+                                <div class="w-3 h-3 rounded-full bg-secondary mr-2"></div>
+                                <span>碳水化合物</span>
+                            </div>
+                            <span class="font-medium">50 克</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center">
+                                <div class="w-3 h-3 rounded-full bg-accent mr-2"></div>
+                                <span>脂肪</span>
+                            </div>
+                            <span class="font-medium">15 克</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center">
+                                <div class="w-3 h-3 rounded-full bg-gray-400 mr-2"></div>
+                                <span>膳食纖維</span>
+                            </div>
+                            <span class="font-medium">5 克</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- AI飲食建議 -->
+            <div class="p-4">
+                <div class="card">
+                    <div class="flex items-center mb-4">
+                        <i class="fa fa-lightbulb-o text-accent text-xl mr-2"></i>
+                        <h3 class="font-bold">AI飲食建議</h3>
+                    </div>
+                    <p class="text-sm text-medium">
+                        這餐的營養比例相當均衡！蛋白質來源優質，碳水化合物適量，脂肪含量也在合理範圍內。建議可以適量增加一些膳食纖維，例如添加一份新鮮水果或增加蔬菜的份量，這樣會更有利於腸道健康。
+                    </p>
+                </div>
+            </div>
+            
+            <div class="p-4">
+                <button id="save-result-btn" class="btn-primary w-full">
+                    <i class="fa fa-save"></i>
+                    保存記錄
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 等待DOM完全加載
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM完全加載，初始化應用...');
+            
+            // 模擬數據
+            const userProfile = {
+                id: "user123",
+                name: "使用者",
+                gender: "male",
+                age: 30,
+                height: 175,
+                weight: 70,
+                activityLevel: 1.55,
+                healthGoal: "maintain",
+                dailyCalorieGoal: 2000
+            };
+
+        const foodRecords = [
+            {
+                id: "record123",
+                userId: "user123",
+                timestamp: "2023-07-21T08:30:00",
+                mealType: "breakfast",
+                foods: [
+                    {
+                        name: "全麥麵包",
+                        portion: 50,
+                        calories: 120,
+                        protein: 4.0,
+                        carbs: 22.0,
+                        fat: 2.0,
+                        fiber: 3.0
+                    },
+                    {
+                        name: "水煮蛋",
+                        portion: 50,
+                        calories: 70,
+                        protein: 6.0,
+                        carbs: 0.0,
+                        fat: 5.0,
+                        fiber: 0.0
+                    },
+                    {
+                        name: "希臘優格",
+                        portion: 100,
+                        calories: 100,
+                        protein: 10.0,
+                        carbs: 5.0,
+                        fat: 5.0,
+                        fiber: 0.0
+                    },
+                    {
+                        name: "水果",
+                        portion: 100,
+                        calories: 60,
+                        protein: 0.5,
+                        carbs: 15.0,
+                        fat: 0.0,
+                        fiber: 2.0
+                    }
+                ],
+                totalCalories: 350,
+                imageUrl: "https://p6-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/40effd8b3371489db39a1f18f7d3ec45~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=20260224205257CED21D2127924BF448D0&rrcfp=f06b921b&x-expires=1774529618&x-signature=ZiLkES8GmDQNgD0qs%2BTfeSAf41g%3D"
+            },
+            {
+                id: "record124",
+                userId: "user123",
+                timestamp: "2023-07-21T12:30:00",
+                mealType: "lunch",
+                foods: [
+                    {
+                        name: "烤雞胸肉",
+                        portion: 100,
+                        calories: 165,
+                        protein: 31.0,
+                        carbs: 0.0,
+                        fat: 3.6,
+                        fiber: 0.0
+                    },
+                    {
+                        name: "糙米",
+                        portion: 100,
+                        calories: 111,
+                        protein: 2.6,
+                        carbs: 23.0,
+                        fat: 0.9,
+                        fiber: 1.8
+                    },
+                    {
+                        name: "蔬菜沙拉",
+                        portion: 100,
+                        calories: 50,
+                        protein: 2.0,
+                        carbs: 10.0,
+                        fat: 0.0,
+                        fiber: 3.0
+                    }
+                ],
+                totalCalories: 326,
+                imageUrl: "https://p26-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/9c6a2aeb5ccd4dbca0cfe3da7b734723~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=20260224205257CED21D2127924BF448D0&rrcfp=f06b921b&x-expires=1774529617&x-signature=xiHKuCtiSCKz1sxpmeN7LyYwLD4%3D"
+            }
+        ];
+
+        // DOM 元素
+        const loadingScreen = document.getElementById('loading-screen');
+        const welcomeScreen = document.getElementById('welcome-screen');
+        const profileSetupScreen = document.getElementById('profile-setup-screen');
+        const mainScreen = document.getElementById('main-screen');
+        const cameraScreen = document.getElementById('camera-screen');
+        const resultScreen = document.getElementById('result-screen');
+        
+        const getStartedBtn = document.getElementById('get-started-btn');
+        // const loginBtn = document.getElementById('login-btn'); // 已移除
+        const profileBtn = document.getElementById('profile-btn');
+        const cameraBtn = document.getElementById('camera-btn');
+        const captureBtn = document.getElementById('capture-btn');
+        const galleryBtn = document.getElementById('gallery-btn');
+        const saveResultBtn = document.getElementById('save-result-btn');
+        const backButtons = document.querySelectorAll('.back-btn');
+        
+        const profileForm = document.getElementById('profile-form');
+        const currentDateEl = document.getElementById('current-date');
+        
+        // 初始化
+        // 模擬載入時間
+        setTimeout(() => {
+            console.log('隱藏載入畫面，顯示歡迎頁');
+            loadingScreen.classList.add('hidden');
+            welcomeScreen.classList.remove('hidden');
+        }, 1500);
+        
+        // 設置當前日期
+        const now = new Date();
+        const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+        currentDateEl.textContent = now.toLocaleDateString('zh-TW', options);
+        
+        // 初始化營養成分圖表
+        initNutritionChart();
+        
+        // 初始化營養成分圓形圖
+        function initNutritionChart() {
+            const ctx = document.getElementById('nutrition-chart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['蛋白質', '碳水化合物', '脂肪'],
+                    datasets: [{
+                        data: [35, 50, 15],
+                        backgroundColor: [
+                            '#4CAF50',
+                            '#2196F3',
+                            '#FF9800'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    cutout: '70%',
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.raw || 0;
+                                    return `${label}: ${value}g`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // 計算基礎代謝率 (BMR)
+        function calculateBMR(weight, height, age, gender) {
+            if (gender === 'male') {
+                return 88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age);
+            } else {
+                return 447.593 + (9.247 * weight) + (3.098 * height) - (4.330 * age);
+            }
+        }
+        
+        // 計算每日總能量消耗 (TDEE)
+        function calculateTDEE(bmr, activityLevel) {
+            return bmr * activityLevel;
+        }
+        
+        // 計算目標熱量
+        function calculateTargetCalories(tdee, goal) {
+            switch (goal) {
+                case 'weightLoss':
+                    return tdee - 500; // 減少500卡路里用於減重
+                case 'muscleGain':
+                    return tdee + 300; // 增加300卡路里用於增肌
+                default:
+                    return tdee; // 維持體重
+            }
+        }
+
+        // 獲取活動水平文字描述
+        function getActivtyLevelText(level) {
+            switch (level) {
+                case 1.2: return '久坐不動';
+                case 1.375: return '輕度活動';
+                case 1.55: return '中度活動';
+                case 1.725: return '高度活動';
+                case 1.9: return '非常活躍';
+                default: return '中度活動';
+            }
+        }
+        
+        // 更新用戶資料
+        function updateUserProfile(formData) {
+            const bmr = calculateBMR(
+                parseFloat(formData.get('weight')),
+                parseFloat(formData.get('height')),
+                parseInt(formData.get('age')),
+                formData.get('gender')
+            );
+            
+            const tdee = calculateTDEE(bmr, parseFloat(formData.get('activity-level')));
+            const targetCalories = calculateTargetCalories(tdee, formData.get('health-goal'));
+            
+            userProfile.name = formData.get('nickname');
+            userProfile.gender = formData.get('gender');
+            userProfile.age = parseInt(formData.get('age'));
+            userProfile.height = parseFloat(formData.get('height'));
+            userProfile.weight = parseFloat(formData.get('weight'));
+            userProfile.activityLevel = parseFloat(formData.get('activity-level'));
+            userProfile.healthGoal = formData.get('health-goal');
+            userProfile.dailyCalorieGoal = Math.round(targetCalories);
+            
+            // 保存到本地存儲
+            localStorage.setItem('userProfile', JSON.stringify(userProfile));
+            
+            return userProfile;
+        }
+        
+        // 事件監聽器
+        getStartedBtn.addEventListener('click', function() {
+            console.log('開始使用按鈕點擊');
+            welcomeScreen.classList.add('hidden');
+            profileSetupScreen.classList.remove('hidden');
+        });
+        
+        // loginBtn.addEventListener('click', function() {
+        //     console.log('登入/註冊按鈕點擊');
+        //     // 模擬登入，直接進入主頁
+        //     welcomeScreen.classList.add('hidden');
+        //     mainScreen.classList.remove('hidden');
+        // }); // 已移除
+        
+        profileBtn.addEventListener('click', function() {
+            console.log('個人資料按鈕點擊');
+            // 顯示個人資料畫面
+            showProfileScreen();
+        });
+        
+        cameraBtn.addEventListener('click', function() {
+            console.log('相機按鈕點擊');
+            mainScreen.classList.add('hidden');
+            cameraScreen.classList.remove('hidden');
+        });
+        
+        captureBtn.addEventListener('click', function() {
+            console.log('拍照按鈕點擊');
+            // 模擬拍照過程
+            const cameraPreview = document.getElementById('camera-preview');
+            cameraPreview.innerHTML = '<div class="w-full h-full bg-black flex items-center justify-center"><i class="fa fa-spinner fa-spin text-white text-4xl"></i></div>';
+            
+            setTimeout(() => {
+                cameraScreen.classList.add('hidden');
+                resultScreen.classList.remove('hidden');
+            }, 1500);
+        });
+        
+        galleryBtn.addEventListener('click', function() {
+            console.log('相冊按鈕點擊');
+            // 模擬從相冊選擇照片
+            cameraScreen.classList.add('hidden');
+            resultScreen.classList.remove('hidden');
+        });
+        
+        saveResultBtn.addEventListener('click', function() {
+            console.log('保存記錄按鈕點擊');
+            // 保存記錄
+            resultScreen.classList.add('hidden');
+            mainScreen.classList.remove('hidden');
+            
+            // 顯示保存成功提示
+            const toast = document.createElement('div');
+            toast.className = 'fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-dark text-white px-4 py-2 rounded-lg shadow-lg';
+            toast.textContent = '記錄已保存';
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 2000);
+        });
+        
+        profileForm.addEventListener('submit', function(e) {
+            console.log('表單提交');
+            e.preventDefault();
+            const formData = new FormData(profileForm);
+            updateUserProfile(formData);
+            
+            profileSetupScreen.classList.add('hidden');
+            // 返回到個人資料畫面
+            showProfileScreen();
+        });
+        
+        backButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                console.log('返回按鈕點擊');
+                if (!profileSetupScreen.classList.contains('hidden')) {
+                    profileSetupScreen.classList.add('hidden');
+                    welcomeScreen.classList.remove('hidden');
+                } else if (!cameraScreen.classList.contains('hidden')) {
+                    cameraScreen.classList.add('hidden');
+                    mainScreen.classList.remove('hidden');
+                } else if (!resultScreen.classList.contains('hidden')) {
+                    resultScreen.classList.add('hidden');
+                    cameraScreen.classList.remove('hidden');
+                }
+            });
+        });
+        
+        // 為底部導航按鈕添加事件監聽器
+        document.getElementById('home-btn').addEventListener('click', function() {
+            console.log('首頁按鈕點擊');
+            // 確保在首頁
+            if (mainScreen.classList.contains('hidden')) {
+                // 隱藏當前顯示的畫面
+                profileSetupScreen.classList.add('hidden');
+                cameraScreen.classList.add('hidden');
+                resultScreen.classList.add('hidden');
+                // 顯示首頁
+                mainScreen.classList.remove('hidden');
+            }
+        });
+        
+        document.getElementById('stats-btn').addEventListener('click', function() {
+            console.log('營養分析按鈕點擊');
+            // 顯示營養分析畫面
+            mainScreen.classList.add('hidden');
+            showNutritionAnalysisScreen();
+        });
+        
+        document.getElementById('history-btn').addEventListener('click', function() {
+            console.log('歷史按鈕點擊');
+            // 顯示歷史記錄畫面
+            mainScreen.classList.add('hidden');
+            showHistoryScreen();
+        });
+        
+        document.getElementById('settings-btn').addEventListener('click', function() {
+            console.log('AI建議按鈕點擊');
+            // 顯示AI建議畫面
+            mainScreen.classList.add('hidden');
+            showAIAdviceScreen();
+        });
+        
+        // 為餐食標籤添加事件監聽器
+        const mealTabs = document.querySelectorAll('.flex.space-x-2.mb-4 button');
+        mealTabs.forEach((tab, index) => {
+            tab.addEventListener('click', () => {
+                console.log('餐食標籤點擊，索引:', index);
+                // 移除所有標籤的活躍狀態
+                mealTabs.forEach(t => t.classList.remove('tab-active'));
+                // 添加當前標籤的活躍狀態
+                tab.classList.add('tab-active');
+            });
+        });
+        
+        // 為添加餐食按鈕添加事件監聽器
+        const addMealBtn = document.getElementById('add-meal-btn');
+        if (addMealBtn) {
+            addMealBtn.addEventListener('click', () => {
+                console.log('添加餐食按鈕點擊');
+                mainScreen.classList.add('hidden');
+                cameraScreen.classList.remove('hidden');
+            });
+        }
+        
+        // 為編輯結果按鈕添加事件監聽器
+        const editResultBtn = document.getElementById('edit-result-btn');
+        if (editResultBtn) {
+            editResultBtn.addEventListener('click', () => {
+                console.log('編輯結果按鈕點擊');
+                alert('編輯功能即將推出');
+            });
+        }
+        
+        // 營養分析畫面功能
+        function showNutritionAnalysisScreen() {
+            // 檢查是否已存在營養分析畫面
+            let nutritionScreen = document.getElementById('nutrition-screen');
+            if (!nutritionScreen) {
+                // 創建營養分析畫面
+                nutritionScreen = document.createElement('div');
+                nutritionScreen.id = 'nutrition-screen';
+                nutritionScreen.className = 'min-h-screen p-4';
+                nutritionScreen.innerHTML = `
+                    <div class="flex items-center mb-6">
+                        <button class="back-to-main-btn mr-4">
+                            <i class="fa fa-arrow-left text-xl"></i>
+                        </button>
+                        <h2 class="text-xl font-bold">營養分析</h2>
+                    </div>
+                    
+                    <!-- 今日營養素概覽 -->
+                    <div class="card mb-4">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="font-bold">今日營養素</h3>
+                            <span class="text-sm text-medium">1766 / 2000 卡路里</span>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <!-- 蛋白質 -->
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span>蛋白質</span>
+                                    <span>56g / 60g</span>
+                                </div>
+                                <div class="relative pt-1">
+                                    <div class="overflow-hidden h-2 text-xs flex rounded-full bg-gray-200">
+                                        <div class="w-[93%] bg-primary rounded-full"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 碳水化合物 -->
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span>碳水化合物</span>
+                                    <span>210g / 250g</span>
+                                </div>
+                                <div class="relative pt-1">
+                                    <div class="overflow-hidden h-2 text-xs flex rounded-full bg-gray-200">
+                                        <div class="w-[84%] bg-secondary rounded-full"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 脂肪 -->
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span>脂肪</span>
+                                    <span>54g / 65g</span>
+                                </div>
+                                <div class="relative pt-1">
+                                    <div class="overflow-hidden h-2 text-xs flex rounded-full bg-gray-200">
+                                        <div class="w-[83%] bg-accent rounded-full"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 營養素比例 -->
+                    <div class="card mb-4">
+                        <h3 class="font-bold mb-4">營養素比例</h3>
+                        <div class="flex justify-center mb-4">
+                            <div class="w-40 h-40">
+                                <canvas id="nutrition-ratio-chart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <!-- 營養素比例說明 -->
+                        <div class="grid grid-cols-3 gap-2 text-center text-sm">
+                            <div>
+                                <div class="w-3 h-3 bg-primary rounded-full mx-auto mb-1"></div>
+                                <span>蛋白質<br>24%</span>
+                            </div>
+                            <div>
+                                <div class="w-3 h-3 bg-secondary rounded-full mx-auto mb-1"></div>
+                                <span>碳水化合物<br>58%</span>
+                            </div>
+                            <div>
+                                <div class="w-3 h-3 bg-accent rounded-full mx-auto mb-1"></div>
+                                <span>脂肪<br>18%</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 每日趨勢 -->
+                    <div class="card mb-4">
+                        <h3 class="font-bold mb-4">每日趨勢</h3>
+                        <div style="height: 150px;">
+                            <canvas id="daily-trend-chart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- 營養建議 -->
+                    <div class="card">
+                        <div class="flex items-center mb-4">
+                            <i class="fa fa-lightbulb-o text-accent text-xl mr-2"></i>
+                            <h3 class="font-bold">營養建議</h3>
+                        </div>
+                        <p class="text-sm text-medium">
+                            您今日的營養攝取比例良好，蛋白質攝取充足，有利於肌肉維持和修復。碳水化合物攝取適量，能提供足夠的能量。脂肪攝取略低，可適量增加健康脂肪，如橄欖油、堅果等。整體而言，今日飲食均衡，繼續保持！
+                        </p>
+                    </div>
+                `;
+                document.getElementById('app').appendChild(nutritionScreen);
+                
+                // 初始化營養分析圖表
+                initNutritionRatioChart();
+                initDailyTrendChart();
+                
+                // 添加返回按鈕事件
+                nutritionScreen.querySelector('.back-to-main-btn').addEventListener('click', function() {
+                    nutritionScreen.classList.add('hidden');
+                    mainScreen.classList.remove('hidden');
+                });
+            }
+            
+            // 顯示營養分析畫面
+            nutritionScreen.classList.remove('hidden');
+        }
+        
+        // 個人資料畫面功能
+        function showProfileScreen() {
+            // 檢查是否已存在個人資料畫面
+            let profileScreen = document.getElementById('profile-screen');
+            if (!profileScreen) {
+                // 創建個人資料畫面
+                profileScreen = document.createElement('div');
+                profileScreen.id = 'profile-screen';
+                profileScreen.className = 'min-h-screen p-4';
+                profileScreen.innerHTML = `
+                    <div class="flex items-center mb-6">
+                        <button class="back-to-main-btn mr-4">
+                            <i class="fa fa-arrow-left text-xl"></i>
+                        </button>
+                        <h2 class="text-xl font-bold">個人資料</h2>
+                    </div>
+                    
+                    <!-- 用戶基本信息 -->
+                    <div class="card mb-4 text-center">
+                        <div class="w-20 h-20 rounded-full bg-primary text-white flex items-center justify-center text-3xl mx-auto mb-4">
+                            <i class="fa fa-user"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-1">${userProfile.name}</h3>
+                        <p class="text-medium text-sm">${userProfile.gender === 'male' ? '男' : '女'} | ${userProfile.age}歲</p>
+                    </div>
+                    
+                    <!-- 身體數據 -->
+                    <div class="card mb-4">
+                        <h3 class="font-bold mb-4">身體數據</h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-medium text-sm mb-1">身高</p>
+                                <p class="font-bold">${userProfile.height} cm</p>
+                            </div>
+                            <div>
+                                <p class="text-medium text-sm mb-1">體重</p>
+                                <p class="font-bold">${userProfile.weight} kg</p>
+                            </div>
+                            <div>
+                                <p class="text-medium text-sm mb-1">BMI</p>
+                                <p class="font-bold">${(userProfile.weight / Math.pow(userProfile.height / 100, 2)).toFixed(1)}</p>
+                            </div>
+                            <div>
+                                <p class="text-medium text-sm mb-1">活動水平</p>
+                                <p class="font-bold">${getActivtyLevelText(userProfile.activityLevel)}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 營養目標 -->
+                    <div class="card mb-4">
+                        <h3 class="font-bold mb-4">營養目標</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span>每日熱量目標</span>
+                                    <span>${userProfile.dailyCalorieGoal} 卡路里</span>
+                                </div>
+                                <div class="relative pt-1">
+                                    <div class="overflow-hidden h-2 text-xs flex rounded-full bg-gray-200">
+                                        <div class="w-[70%] bg-primary rounded-full"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span>蛋白質目標</span>
+                                    <span>${Math.round(userProfile.weight * 1.6)} 克</span>
+                                </div>
+                                <div class="relative pt-1">
+                                    <div class="overflow-hidden h-2 text-xs flex rounded-full bg-gray-200">
+                                        <div class="w-[85%] bg-secondary rounded-full"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span>碳水化合物目標</span>
+                                    <span>${Math.round(userProfile.dailyCalorieGoal * 0.5 / 4)} 克</span>
+                                </div>
+                                <div class="relative pt-1">
+                                    <div class="overflow-hidden h-2 text-xs flex rounded-full bg-gray-200">
+                                        <div class="w-[60%] bg-accent rounded-full"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 操作按鈕 -->
+                    <div class="space-y-3">
+                        <button id="edit-profile-btn" class="btn-primary w-full">
+                            <i class="fa fa-pencil"></i>
+                            編輯資料
+                        </button>
+                        <button id="logout-btn" class="btn-secondary w-full">
+                            <i class="fa fa-sign-out"></i>
+                            登出
+                        </button>
+                    </div>
+                `;
+                document.getElementById('app').appendChild(profileScreen);
+                
+                // 添加返回按鈕事件
+                profileScreen.querySelector('.back-to-main-btn').addEventListener('click', function() {
+                    profileScreen.classList.add('hidden');
+                    mainScreen.classList.remove('hidden');
+                });
+                
+                // 添加編輯資料按鈕事件
+                profileScreen.querySelector('#edit-profile-btn').addEventListener('click', function() {
+                    profileScreen.classList.add('hidden');
+                    profileSetupScreen.classList.remove('hidden');
+                });
+                
+                // 添加登出按鈕事件
+                profileScreen.querySelector('#logout-btn').addEventListener('click', function() {
+                    if (confirm('確定要登出嗎？')) {
+                        profileScreen.classList.add('hidden');
+                        welcomeScreen.classList.remove('hidden');
+                    }
+                });
+            }
+            
+            // 顯示個人資料畫面
+            mainScreen.classList.add('hidden');
+            profileScreen.classList.remove('hidden');
+        }
+
+        // AI建議畫面功能
+        function showAIAdviceScreen() {
+            // 檢查是否已存在AI建議畫面
+            let aiAdviceScreen = document.getElementById('ai-advice-screen');
+            if (!aiAdviceScreen) {
+                // 創建AI建議畫面
+                aiAdviceScreen = document.createElement('div');
+                aiAdviceScreen.id = 'ai-advice-screen';
+                aiAdviceScreen.className = 'min-h-screen p-4';
+                aiAdviceScreen.innerHTML = `
+                    <div class="flex items-center mb-6">
+                        <button class="back-to-main-btn mr-4">
+                            <i class="fa fa-arrow-left text-xl"></i>
+                        </button>
+                        <h2 class="text-xl font-bold">AI飲食建議</h2>
+                    </div>
+                    
+                    <!-- AI營養顧問描述 -->
+                    <div class="card mb-4">
+                        <div class="flex items-start">
+                            <div class="w-12 h-12 rounded-full bg-primary bg-opacity-10 flex items-center justify-center mr-4">
+                                <i class="fa fa-lightbulb-o text-primary text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold mb-1">AI營養顧問</h3>
+                                <p class="text-sm text-medium">
+                                    根據您的飲食記錄和個人資料，我們的AI營養顧問為您提供了以下建議，幫助您更科學地管理飲食。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 營養攝取分析 -->
+                    <div class="card mb-4">
+                        <h3 class="font-bold mb-3">營養攝取分析</h3>
+                        <div class="p-3 bg-light rounded-xl mb-3">
+                            <p class="text-sm">
+                                <i class="fa fa-check-circle text-primary mr-2"></i>
+                                <span>您的熱量攝取基本符合每日目標，但分布不均，晚餐熱量過高。</span>
+                            </p>
+                        </div>
+                        <div class="p-3 bg-light rounded-xl mb-3">
+                            <p class="text-sm">
+                                <i class="fa fa-check-circle text-primary mr-2"></i>
+                                <span>蛋白質攝取充足，有助於肌肉維持和修復。</span>
+                            </p>
+                        </div>
+                        <div class="p-3 bg-light rounded-xl">
+                            <p class="text-sm">
+                                <i class="fa fa-exclamation-circle text-accent mr-2"></i>
+                                <span>碳水化合物攝取略高，建議適當減少精製澱粉的攝取。</span>
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- 飲食建議 -->
+                    <div class="card mb-4">
+                        <h3 class="font-bold mb-3">飲食建議</h3>
+                        <ul class="space-y-3">
+                            <li class="flex items-start">
+                                <div class="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-sm mr-3 mt-0.5">1</div>
+                                <p class="text-sm text-medium">增加蔬菜和水果的攝取量，每天至少5份。</p>
+                            </li>
+                            <li class="flex items-start">
+                                <div class="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-sm mr-3 mt-0.5">2</div>
+                                <p class="text-sm text-medium">選擇全穀類食品，如糙米、全麥麵包等，替代精製澱粉。</p>
+                            </li>
+                            <li class="flex items-start">
+                                <div class="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-sm mr-3 mt-0.5">3</div>
+                                <p class="text-sm text-medium">適量攝取健康脂肪，如橄欖油、堅果、深海魚等。</p>
+                            </li>
+                            <li class="flex items-start">
+                                <div class="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-sm mr-3 mt-0.5">4</div>
+                                <p class="text-sm text-medium">保證充足的水分攝取，每天至少8杯水（約2000ml）。</p>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <!-- 推薦食物 -->
+                    <div class="card mb-4">
+                        <h3 class="font-bold mb-3">推薦食物</h3>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="bg-light rounded-xl p-3">
+                                <h4 class="font-bold text-sm mb-1">早餐推薦</h4>
+                                <p class="text-xs text-medium">全麥吐司 + 水煮蛋 + 新鮮水果</p>
+                            </div>
+                            <div class="bg-light rounded-xl p-3">
+                                <h4 class="font-bold text-sm mb-1">午餐推薦</h4>
+                                <p class="text-xs text-medium">烤雞胸肉沙拉 + 藜麥</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 水分攝取提醒 -->
+                    <div class="card">
+                        <div class="flex justify-between items-center mb-3">
+                            <h3 class="font-bold">今日水分攝取</h3>
+                            <span class="text-sm text-medium">1200ml / 2000ml</span>
+                        </div>
+                        <div class="relative pt-1 mb-2">
+                            <div class="overflow-hidden h-2 text-xs flex rounded-full bg-gray-200">
+                                <div class="w-[60%] bg-secondary rounded-full"></div>
+                            </div>
+                        </div>
+                        <p class="text-xs text-medium">
+                            您今日的水分攝取不足，建議繼續補充水分，保持身體正常代謝。
+                        </p>
+                    </div>
+                `;
+                document.getElementById('app').appendChild(aiAdviceScreen);
+                
+                // 添加返回按鈕事件
+                aiAdviceScreen.querySelector('.back-to-main-btn').addEventListener('click', function() {
+                    aiAdviceScreen.classList.add('hidden');
+                    mainScreen.classList.remove('hidden');
+                });
+            }
+            
+            // 顯示AI建議畫面
+            aiAdviceScreen.classList.remove('hidden');
+        }
+
+        // 食物庫畫面功能
+        function showFoodLibraryScreen() {
+            // 檢查是否已存在食物庫畫面
+            let foodLibraryScreen = document.getElementById('food-library-screen');
+            if (!foodLibraryScreen) {
+                // 創建食物庫畫面
+                foodLibraryScreen = document.createElement('div');
+                foodLibraryScreen.id = 'food-library-screen';
+                foodLibraryScreen.className = 'min-h-screen p-4';
+                foodLibraryScreen.innerHTML = `
+                    <div class="flex items-center mb-6">
+                        <button class="back-to-main-btn mr-4">
+                            <i class="fa fa-arrow-left text-xl"></i>
+                        </button>
+                        <h2 class="text-xl font-bold">食物營養庫</h2>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <div class="relative">
+                            <input type="text" id="food-search" class="input-field pl-10" placeholder="搜尋食物...">
+                            <i class="fa fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-medium"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="flex space-x-2 mb-4 overflow-x-auto pb-2">
+                        <button class="food-category-btn tab-active whitespace-nowrap px-4 py-2">全部</button>
+                        <button class="food-category-btn text-medium whitespace-nowrap px-4 py-2">主食</button>
+                        <button class="food-category-btn text-medium whitespace-nowrap px-4 py-2">肉類</button>
+                        <button class="food-category-btn text-medium whitespace-nowrap px-4 py-2">蔬菜</button>
+                        <button class="food-category-btn text-medium whitespace-nowrap px-4 py-2">水果</button>
+                        <button class="food-category-btn text-medium whitespace-nowrap px-4 py-2">飲品</button>
+                    </div>
+                    
+                    <div id="food-list" class="space-y-4">
+                        <div class="card food-item">
+                            <div class="flex justify-between items-center">
+                                <h4 class="font-bold">白米飯</h4>
+                                <span class="text-primary font-bold">116 kcal/100g</span>
+                            </div>
+                            <div class="flex justify-between text-sm text-medium mt-2">
+                                <span>蛋白質: 2.7g</span>
+                                <span>碳水: 25.6g</span>
+                                <span>脂肪: 0.3g</span>
+                            </div>
+                        </div>
+                        
+                        <div class="card food-item">
+                            <div class="flex justify-between items-center">
+                                <h4 class="font-bold">雞胸肉</h4>
+                                <span class="text-primary font-bold">165 kcal/100g</span>
+                            </div>
+                            <div class="flex justify-between text-sm text-medium mt-2">
+                                <span>蛋白質: 31g</span>
+                                <span>碳水: 0g</span>
+                                <span>脂肪: 3.6g</span>
+                            </div>
+                        </div>
+                        
+                        <div class="card food-item">
+                            <div class="flex justify-between items-center">
+                                <h4 class="font-bold">西蘭花</h4>
+                                <span class="text-primary font-bold">34 kcal/100g</span>
+                            </div>
+                            <div class="flex justify-between text-sm text-medium mt-2">
+                                <span>蛋白質: 2.8g</span>
+                                <span>碳水: 6.6g</span>
+                                <span>脂肪: 0.4g</span>
+                            </div>
+                        </div>
+                        
+                        <div class="card food-item">
+                            <div class="flex justify-between items-center">
+                                <h4 class="font-bold">香蕉</h4>
+                                <span class="text-primary font-bold">89 kcal/100g</span>
+                            </div>
+                            <div class="flex justify-between text-sm text-medium mt-2">
+                                <span>蛋白質: 1.1g</span>
+                                <span>碳水: 22.8g</span>
+                                <span>脂肪: 0.3g</span>
+                            </div>
+                        </div>
+                        
+                        <div class="card food-item">
+                            <div class="flex justify-between items-center">
+                                <h4 class="font-bold">全脂牛奶</h4>
+                                <span class="text-primary font-bold">61 kcal/100ml</span>
+                            </div>
+                            <div class="flex justify-between text-sm text-medium mt-2">
+                                <span>蛋白質: 3.2g</span>
+                                <span>碳水: 4.8g</span>
+                                <span>脂肪: 3.2g</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('app').appendChild(foodLibraryScreen);
+                
+                // 添加返回按鈕事件
+                foodLibraryScreen.querySelector('.back-to-main-btn').addEventListener('click', function() {
+                    foodLibraryScreen.classList.add('hidden');
+                    mainScreen.classList.remove('hidden');
+                });
+                
+                // 添加食物分類按鈕事件
+                const categoryBtns = foodLibraryScreen.querySelectorAll('.food-category-btn');
+                categoryBtns.forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        // 移除所有按鈕的活躍狀態
+                        categoryBtns.forEach(b => b.classList.remove('tab-active'));
+                        // 添加當前按鈕的活躍狀態
+                        this.classList.add('tab-active');
+                        
+                        // 這裡可以添加根據分類篩選食物的功能
+                        const category = this.textContent.trim();
+                        console.log('選擇食物分類:', category);
+                        
+                        // 模擬篩選效果
+                        const foodItems = foodLibraryScreen.querySelectorAll('.food-item');
+                        if (category === '全部') {
+                            foodItems.forEach(item => item.classList.remove('hidden'));
+                        } else {
+                            // 隨機顯示或隱藏一些項目來模擬篩選效果
+                            foodItems.forEach(item => {
+                                item.classList.toggle('hidden', Math.random() > 0.7);
+                            });
+                        }
+                    });
+                });
+                
+                // 添加食物搜索功能
+                const foodSearch = foodLibraryScreen.querySelector('#food-search');
+                if (foodSearch) {
+                    foodSearch.addEventListener('input', function() {
+                        const searchTerm = this.value.toLowerCase();
+                        const foodItems = foodLibraryScreen.querySelectorAll('.food-item');
+                        
+                        foodItems.forEach(item => {
+                            const foodName = item.querySelector('h4').textContent.toLowerCase();
+                            if (foodName.includes(searchTerm)) {
+                                item.classList.remove('hidden');
+                            } else {
+                                item.classList.add('hidden');
+                            }
+                        });
+                    });
+                }
+            }
+            
+            // 顯示食物庫畫面
+            foodLibraryScreen.classList.remove('hidden');
+        }
+        
+        // 初始化營養素比例圓形圖
+        function initNutritionRatioChart() {
+            const ctx = document.getElementById('nutrition-ratio-chart');
+            if (!ctx) return;
+            
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['蛋白質', '碳水化合物', '脂肪'],
+                    datasets: [{
+                        data: [24, 58, 18],
+                        backgroundColor: [
+                            '#4CAF50',
+                            '#2196F3',
+                            '#FF9800'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    cutout: '70%',
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+        
+        // 初始化每日趨勢圖表
+        function initDailyTrendChart() {
+            const ctx = document.getElementById('daily-trend-chart');
+            if (!ctx) return;
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['06:00', '09:00', '12:00', '15:00', '18:00', '21:00'],
+                    datasets: [{
+                        label: '熱量累計',
+                        data: [0, 350, 700, 850, 1300, 1766],
+                        borderColor: '#4CAF50',
+                        backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#4CAF50',
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 2500,
+                            grid: {
+                                display: true,
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // 歷史記錄畫面功能
+        function showHistoryScreen() {
+            // 檢查是否已存在歷史記錄畫面
+            let historyScreen = document.getElementById('history-screen');
+            if (!historyScreen) {
+                // 創建歷史記錄畫面
+                historyScreen = document.createElement('div');
+                historyScreen.id = 'history-screen';
+                historyScreen.className = 'min-h-screen p-4';
+                
+                // 生成月曆和歷史記錄內容
+                historyScreen.innerHTML = generateHistoryContent();
+                
+                document.getElementById('app').appendChild(historyScreen);
+                
+                // 添加返回按鈕事件
+                historyScreen.querySelector('.back-to-main-btn').addEventListener('click', function() {
+                    historyScreen.classList.add('hidden');
+                    mainScreen.classList.remove('hidden');
+                });
+                
+                // 添加月份切換按鈕事件
+                historyScreen.querySelector('.prev-month-btn').addEventListener('click', function() {
+                    currentMonth--;
+                    if (currentMonth < 0) {
+                        currentMonth = 11;
+                        currentYear--;
+                    }
+                    updateCalendar();
+                });
+                
+                historyScreen.querySelector('.next-month-btn').addEventListener('click', function() {
+                    currentMonth++;
+                    if (currentMonth > 11) {
+                        currentMonth = 0;
+                        currentYear++;
+                    }
+                    updateCalendar();
+                });
+                
+                // 添加日期點擊事件
+                function addDateClickEvents() {
+                    const dateCells = historyScreen.querySelectorAll('.calendar-day');
+                    dateCells.forEach(cell => {
+                        cell.addEventListener('click', function() {
+                            // 移除所有日期的選擇狀態
+                            dateCells.forEach(d => d.classList.remove('bg-primary', 'text-white'));
+                            // 添加當前日期的選擇狀態
+                            this.classList.add('bg-primary', 'text-white');
+                            
+                            // 獲取選擇的日期
+                            const day = parseInt(this.textContent.trim());
+                            if (!isNaN(day)) {
+                                const selectedDate = new Date(currentYear, currentMonth, day);
+                                console.log('選擇日期:', selectedDate.toLocaleDateString());
+                                
+                                // 更新當天的飲食記錄
+                                updateDailyRecords(selectedDate);
+                            }
+                        });
+                    });
+                }
+                
+                // 更新月曆
+                function updateCalendar() {
+                    const monthNames = ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'];
+                    historyScreen.querySelector('.current-month').textContent = `${currentYear}年 ${monthNames[currentMonth]}`;
+                    
+                    const calendarBody = historyScreen.querySelector('.calendar-body');
+                    calendarBody.innerHTML = generateCalendarDays(currentYear, currentMonth);
+                    
+                    // 重新添加日期點擊事件
+                    addDateClickEvents();
+                }
+                
+                // 更新當天的飲食記錄
+                function updateDailyRecords(date) {
+                    const recordsContainer = historyScreen.querySelector('.daily-records');
+                    
+                    // 清空所有記錄
+                    const hasRecords = false; // 設置為false表示沒有記錄
+                    
+                    if (hasRecords) {
+                        // 生成模擬的飲食記錄
+                        const mealTypes = ['早餐', '午餐', '晚餐', '點心'];
+                        const records = mealTypes.filter(() => Math.random() > 0.4); // 隨機選擇幾餐
+                        
+                        if (records.length > 0) {
+                            let recordsHTML = '<h3 class="font-bold mb-4">當天飲食記錄</h3>';
+                            
+                            records.forEach(meal => {
+                                const calories = Math.floor(Math.random() * 500) + 200; // 隨機熱量
+                                const time = `${Math.floor(Math.random() * 12) + 1}:${Math.floor(Math.random() * 60).toString().padStart(2, '0')} ${Math.random() > 0.5 ? '上午' : '下午'}`;
+                                
+                                recordsHTML += `
+                                    <div class="card mb-3">
+                                        <div class="flex justify-between items-center">
+                                            <h4 class="font-bold">${meal}</h4>
+                                            <span class="text-sm text-medium">${time}</span>
+                                        </div>
+                                        <div class="flex justify-between items-center mt-2">
+                                            <p class="text-sm text-medium">${getRandomFood(meal)}</p>
+                                            <span class="font-bold text-primary">${calories} 卡路里</span>
+                                        </div>
+                                    </div>
+                                `;
+                            });
+                            
+                            recordsContainer.innerHTML = recordsHTML;
+                        } else {
+                            recordsContainer.innerHTML = '<p class="text-center text-medium py-8">當天沒有飲食記錄</p>';
+                        }
+                    } else {
+                        recordsContainer.innerHTML = '<p class="text-center text-medium py-8">當天沒有飲食記錄</p>';
+                    }
+                }
+                
+                // 生成隨機食物
+                function getRandomFood(mealType) {
+                    const foods = {
+                        '早餐': ['全麥麵包、水煮蛋、牛奶', '稀飯、鹹菜、豆腐乳', '三明治、果汁', '燕麥粥、水果', '蛋餅、豆漿'],
+                        '午餐': ['白米飯、炒青菜、烤雞胸肉', '麵條、牛肉、蔬菜', '漢堡、薯條、可樂', '沙拉、三明治、湯', '蓋飯、小菜'],
+                        '晚餐': ['糙米、魚片、蔬菜', '義大利麵、沙拉', '火鍋', '烤魚、烤蔬菜', '炒飯、湯'],
+                        '點心': ['水果、優格', '餅乾、牛奶', '堅果、水果乾', '巧克力', '冰淇淋']
+                    };
+                    
+                    const mealFoods = foods[mealType] || foods['早餐'];
+                    return mealFoods[Math.floor(Math.random() * mealFoods.length)];
+                }
+                
+                // 初始化月曆
+                let currentDate = new Date();
+                let currentYear = currentDate.getFullYear();
+                let currentMonth = currentDate.getMonth();
+                
+                updateCalendar();
+                
+                // 預設選擇今天
+                const today = currentDate.getDate();
+                const todayCell = historyScreen.querySelector(`.calendar-day:not(.other-month):contains('${today}')`);
+                if (todayCell) {
+                    todayCell.click();
+                }
+            }
+            
+            // 顯示歷史記錄畫面
+            historyScreen.classList.remove('hidden');
+        }
+        
+        // 生成月曆和歷史記錄內容
+        function generateHistoryContent() {
+            const monthNames = ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'];
+            const currentDate = new Date();
+            const currentYear = currentDate.getFullYear();
+            const currentMonth = currentDate.getMonth();
+            
+            return `
+                <div class="flex items-center mb-6">
+                    <button class="back-to-main-btn mr-4">
+                        <i class="fa fa-arrow-left text-xl"></i>
+                    </button>
+                    <h2 class="text-xl font-bold">飲食歷史</h2>
+                </div>
+                
+                <div class="card mb-4">
+                    <div class="flex justify-between items-center mb-4">
+                        <button class="prev-month-btn text-medium">
+                            <i class="fa fa-chevron-left"></i>
+                        </button>
+                        <h3 class="font-bold current-month">${currentYear}年 ${monthNames[currentMonth]}</h3>
+                        <button class="next-month-btn text-medium">
+                            <i class="fa fa-chevron-right"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="calendar-container">
+                        <div class="grid grid-cols-7 gap-1 mb-2">
+                            <div class="text-center text-sm text-medium">日</div>
+                            <div class="text-center text-sm text-medium">一</div>
+                            <div class="text-center text-sm text-medium">二</div>
+                            <div class="text-center text-sm text-medium">三</div>
+                            <div class="text-center text-sm text-medium">四</div>
+                            <div class="text-center text-sm text-medium">五</div>
+                            <div class="text-center text-sm text-medium">六</div>
+                        </div>
+                        <div class="grid grid-cols-7 gap-1 calendar-body">
+                            ${generateCalendarDays(currentYear, currentMonth)}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="daily-records">
+                    <p class="text-center text-medium py-8">請選擇日期查看飲食記錄</p>
+                </div>
+            `;
+        }
+        
+        // 生成月曆日期
+        function generateCalendarDays(year, month) {
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const daysInPrevMonth = new Date(year, month, 0).getDate();
+            
+            let calendarHTML = '';
+            
+            // 添加上個月的日期
+            for (let i = firstDay - 1; i >= 0; i--) {
+                calendarHTML += `<div class="calendar-day other-month text-center py-2 text-gray-400">${daysInPrevMonth - i}</div>`;
+            }
+            
+            // 添加當月的日期
+            for (let i = 1; i <= daysInMonth; i++) {
+                // 不再添加任何記錄標記
+                calendarHTML += `<div class="calendar-day text-center py-2 cursor-pointer hover:bg-gray-100 rounded-full">${i}</div>`;
+            }
+            
+            // 添加下個月的日期
+            const remainingCells = 42 - (firstDay + daysInMonth); // 6行7列 = 42個單元格
+            for (let i = 1; i <= remainingCells; i++) {
+                calendarHTML += `<div class="calendar-day other-month text-center py-2 text-gray-400">${i}</div>`;
+            }
+            
+            return calendarHTML;
+        }
+    });
+    </script>
+</body>
+</html>
