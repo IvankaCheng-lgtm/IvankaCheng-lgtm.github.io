@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>最終修復測試 - 這樣吃算多少</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4CAF50',
+                        secondary: '#8BC34A',
+                        accent: '#FFC107',
+                        dark: '#2E7D32',
+                        light: '#F1F8E9'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold text-center text-dark mb-8">🔧 返回按鈕空白頁面問題 - 最終修復</h1>
+        
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-2xl font-semibold text-dark mb-4">✅ 已徹底修復的問題</h2>
+            <div class="space-y-4">
+                <div class="flex items-start">
+                    <div class="bg-green-100 rounded-full p-2 mr-4 mt-1">
+                        <i class="fa fa-check text-primary text-lg"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-lg text-dark">返回按鈕空白頁面問題</h3>
+                        <p class="text-gray-600">徹底解決了從首頁進入其他頁面後，點擊返回按鈕出現空白頁面的問題。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-2xl font-semibold text-dark mb-4">🔧 核心修復內容</h2>
+            <div class="space-y-6">
+                <div>
+                    <h3 class="text-lg font-medium text-primary mb-3 flex items-center">
+                        <i class="fa fa-cogs mr-2"></i> 1. 統一返回按鈕類名
+                    </h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="text-gray-700">將所有動態創建頁面中的返回按鈕類名從 <code>back-to-main-btn</code> 統一修改為 <code>back-btn</code>，確保所有返回按鈕都能被全局事件監聽器捕獲。</p>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-medium text-primary mb-3 flex items-center">
+                        <i class="fa fa-sitemap mr-2"></i> 2. 增強全局返回邏輯
+                    </h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="text-gray-700">在全局返回按鈕事件處理器中添加了對所有動態創建頁面的檢測，包括：</p>
+                        <ul class="list-disc list-inside mt-2 space-y-1 text-gray-700">
+                            <li>營養分析頁面 (<code>nutrition-screen</code>)</li>
+                            <li>個人資料頁面 (<code>profile-screen</code>)</li>
+                            <li>AI建議頁面 (<code>ai-advice-screen</code>)</li>
+                            <li>歷史記錄頁面 (<code>history-screen</code>)</li>
+                            <li>食物庫頁面 (<code>food-library-screen</code>)</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-medium text-primary mb-3 flex items-center">
+                        <i class="fa fa-exchange mr-2"></i> 3. 事件委托機制
+                    </h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="text-gray-700">修改了各動態頁面的返回按鈕事件處理，不再使用獨立的事件處理邏輯，而是委托給全局返回按鈕處理器：</p>
+                        <pre class="bg-gray-800 text-green-400 p-3 rounded-lg mt-2 text-sm overflow-x-auto">
+// 新的事件委托模式
+backBtn.addEventListener('click', function() {
+    console.log('頁面返回按鈕點擊');
+    // 触发全局返回按钮逻辑
+    const event = new Event('click');
+    backButtons[0].dispatchEvent(event);
+});</pre>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-medium text-primary mb-3 flex items-center">
+                        <i class="fa fa-shield mr-2"></i> 4. 默認返回保障
+                    </h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="text-gray-700">添加了默認返回主頁的邏輯，確保在任何情況下都不會出現空白頁面：</p>
+                        <pre class="bg-gray-800 text-green-400 p-3 rounded-lg mt-2 text-sm overflow-x-auto">
+} else {
+    // 默认返回主页
+    mainScreen.classList.remove('hidden');
+    mainScreen.style.display = 'block';
+    console.log('默認返回主頁');
+}</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-2xl font-semibold text-dark mb-4">🧪 完整測試流程</h2>
+            <div class="space-y-4">
+                <div class="p-4 border border-gray-200 rounded-lg">
+                    <h3 class="font-medium text-dark mb-2 flex items-center">
+                        <span class="bg-primary text-white rounded-full w-6 h-6 flex items-center justify-center mr-2 text-sm">1</span>
+                        營養分析頁面測試
+                    </h3>
+                    <ol class="list-decimal list-inside space-y-1 text-gray-700 pl-8">
+                        <li>從首頁點擊底部導航的「營養分析」按鈕</li>
+                        <li>進入營養分析頁面後，點擊左上角的返回按鈕</li>
+                        <li>應該正常返回到首頁，不會出現空白頁面</li>
+                    </ol>
+                </div>
+                
+                <div class="p-4 border border-gray-200 rounded-lg">
+                    <h3 class="font-medium text-dark mb-2 flex items-center">
+                        <span class="bg-primary text-white rounded-full w-6 h-6 flex items-center justify-center mr-2 text-sm">2</span>
+                        歷史記錄頁面測試
+                    </h3>
+                    <ol class="list-decimal list-inside space-y-1 text-gray-700 pl-8">
+                        <li>從首頁點擊底部導航的「歷史記錄」按鈕</li>
+                        <li>進入歷史記錄頁面後，點擊左上角的返回按鈕</li>
+                        <li>應該正常返回到首頁，不會出現空白頁面</li>
+                    </ol>
+                </div>
+                
+                <div class="p-4 border border-gray-200 rounded-lg">
+                    <h3 class="font-medium text-dark mb-2 flex items-center">
+                        <span class="bg-primary text-white rounded-full w-6 h-6 flex items-center justify-center mr-2 text-sm">3</span>
+                        AI建議頁面測試
+                    </h3>
+                    <ol class="list-decimal list-inside space-y-1 text-gray-700 pl-8">
+                        <li>從首頁點擊底部導航的「AI建議」按鈕</li>
+                        <li>進入AI建議頁面後，點擊左上角的返回按鈕</li>
+                        <li>應該正常返回到首頁，不會出現空白頁面</li>
+                    </ol>
+                </div>
+                
+                <div class="p-4 border border-gray-200 rounded-lg">
+                    <h3 class="font-medium text-dark mb-2 flex items-center">
+                        <span class="bg-primary text-white rounded-full w-6 h-6 flex items-center justify-center mr-2 text-sm">4</span>
+                        個人資料頁面測試
+                    </h3>
+                    <ol class="list-decimal list-inside space-y-1 text-gray-700 pl-8">
+                        <li>從首頁點擊右上角的個人資料按鈕</li>
+                        <li>進入個人資料頁面後，點擊左上角的返回按鈕</li>
+                        <li>應該正常返回到首頁，不會出現空白頁面</li>
+                    </ol>
+                </div>
+                
+                <div class="p-4 border border-gray-200 rounded-lg">
+                    <h3 class="font-medium text-dark mb-2 flex items-center">
+                        <span class="bg-primary text-white rounded-full w-6 h-6 flex items-center justify-center mr-2 text-sm">5</span>
+                        食物庫頁面測試
+                    </h3>
+                    <ol class="list-decimal list-inside space-y-1 text-gray-700 pl-8">
+                        <li>從首頁的食物記錄中點擊「食物營養庫」按鈕</li>
+                        <li>進入食物庫頁面後，點擊左上角的返回按鈕</li>
+                        <li>應該正常返回到首頁，不會出現空白頁面</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-2xl font-semibold text-dark mb-4">📊 修復效果</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+                    <h3 class="font-medium text-green-800 mb-3 flex items-center">
+                        <i class="fa fa-check-circle text-green-600 mr-2"></i>
+                        修復前
+                    </h3>
+                    <div class="space-y-2 text-gray-700">
+                        <div class="flex items-center">
+                            <i class="fa fa-times-circle text-red-500 mr-2"></i>
+                            <span>返回按鈕類名不統一</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fa fa-times-circle text-red-500 mr-2"></i>
+                            <span>缺少對動態頁面的檢測</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fa fa-times-circle text-red-500 mr-2"></i>
+                            <span>各頁面返回邏輯獨立，容易出錯</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fa fa-times-circle text-red-500 mr-2"></i>
+                            <span>出現空白頁面</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+                    <h3 class="font-medium text-green-800 mb-3 flex items-center">
+                        <i class="fa fa-check-circle text-green-600 mr-2"></i>
+                        修復後
+                    </h3>
+                    <div class="space-y-2 text-gray-700">
+                        <div class="flex items-center">
+                            <i class="fa fa-check-circle text-green-600 mr-2"></i>
+                            <span>所有返回按鈕使用統一類名</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fa fa-check-circle text-green-600 mr-2"></i>
+                            <span>完整檢測所有動態頁面</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fa fa-check-circle text-green-600 mr-2"></i>
+                            <span>統一的事件委托機制</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fa fa-check-circle text-green-600 mr-2"></i>
+                            <span>不再出現空白頁面</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-8">
+            <a href="index.html" class="bg-primary hover:bg-dark text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-colors duration-300 inline-flex items-center">
+                <i class="fa fa-arrow-left mr-2"></i> 返回應用
+            </a>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>頁面切換測試 - 這樣吃算多少</title>
+    <!-- Tailwind CSS v3 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <style>
+        .test-pass {
+            background-color: #d1fae5;
+            border-color: #059669;
+        }
+        .test-info {
+            background-color: #dbeafe;
+            border-color: #2563eb;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-4">
+    <div class="max-w-md mx-auto bg-white rounded-lg shadow-lg p-6">
+        <h1 class="text-2xl font-bold text-center mb-6">頁面切換問題修復</h1>
+        
+        <div class="space-y-4">
+            <!-- 問題分析 -->
+            <div class="border rounded-lg p-4 test-info">
+                <div class="flex items-center">
+                    <i class="fa fa-info-circle text-blue-600 text-xl mr-3"></i>
+                    <h3 class="font-bold">問題分析</h3>
+                </div>
+                <p class="text-sm text-gray-600 mt-2">
+                    任一個頁面點進去第二次都會變白畫面的問題，主要原因是在頁面切換時，代碼同時使用了兩種不同的方式來控制頁面的顯示和隱藏：<br><br>
+                    1. **CSS類控制**：使用 `classList.add('hidden')` 和 `classList.remove('hidden')`<br>
+                    2. **JavaScript樣式控制**：使用 `style.display = 'block'`、`style.display = 'flex'`、`style.display = 'none'`<br><br>
+                    這種混合使用導致了狀態衝突，特別是在第二次訪問同一頁面時，可能出現CSS類和內聯樣式不一致的情況。
+                </p>
+            </div>
+            
+            <!-- 修復方案 -->
+            <div class="border rounded-lg p-4 test-pass">
+                <div class="flex items-center">
+                    <i class="fa fa-check-circle text-green-600 text-xl mr-3"></i>
+                    <h3 class="font-bold">修復方案</h3>
+                </div>
+                <p class="text-sm text-gray-600 mt-2">
+                    為了解決這個問題，我採取了以下措施：<br><br>
+                    1. **統一控制方式**：完全使用CSS類來控制頁面的顯示和隱藏，移除所有的 `style.display` 設置<br><br>
+                    2. **修改 `hideAllScreens()` 函數**：將 `screen.style.display = 'none'` 改為 `screen.style.display = ''`，移除內聯樣式<br><br>
+                    3. **清理所有頁面切換代碼**：移除了所有在顯示頁面時設置 `style.display = 'block'` 或 `style.display = 'flex'` 的代碼<br><br>
+                    4. **依賴CSS類**：完全依賴Tailwind CSS的 `hidden` 類和頁面元素的默認顯示樣式
+                </p>
+            </div>
+            
+            <!-- 修復的文件 -->
+            <div class="border rounded-lg p-4 test-pass">
+                <div class="flex items-center">
+                    <i class="fa fa-file-code-o text-green-600 text-xl mr-3"></i>
+                    <h3 class="font-bold">修復的文件</h3>
+                </div>
+                <p class="text-sm text-gray-600 mt-2">
+                    <strong>index.html</strong><br>
+                    - 修改了 `hideAllScreens()` 函數<br>
+                    - 清理了所有按鈕點擊事件中的 `style.display` 設置<br>
+                    - 確保頁面切換只依賴CSS的 `hidden` 類
+                </p>
+            </div>
+            
+            <!-- 測試方法 -->
+            <div class="border rounded-lg p-4 test-info">
+                <div class="flex items-center">
+                    <i class="fa fa-search text-blue-600 text-xl mr-3"></i>
+                    <h3 class="font-bold">測試方法</h3>
+                </div>
+                <p class="text-sm text-gray-600 mt-2">
+                    請按照以下步驟測試修復是否成功：<br><br>
+                    1. 打開應用首頁<br>
+                    2. 點擊底部導航欄的各個按鈕（首頁、營養分析、相機、歷史、AI建議）<br>
+                    3. 重複點擊同一個按鈕多次<br>
+                    4. 測試返回按鈕的功能<br>
+                    5. 驗證所有頁面在第二次及以後訪問時是否能正常顯示，不再出現白屏
+                </p>
+            </div>
+        </div>
+        
+        <div class="mt-8 text-center">
+            <a href="index.html" class="inline-block bg-primary text-white font-medium py-2 px-6 rounded-full shadow-md hover:bg-opacity-90 transition-all duration-300">
+                <i class="fa fa-arrow-left mr-2"></i>返回應用
+            </a>
+        </div>
+    </div>
+</body>
+</html>
